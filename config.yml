@@ -1,0 +1,29 @@
+general:
+    train_dir: "/media/agnieszka/Data/data/skin-lesion/train/"
+    test_dir: "/media/agnieszka/Data/data/skin-lesion/test/"
+    num_workers: 0
+    gpu: [0]
+    dir_to_save: "saved_models/"
+    seed: 2021
+    nepune_project_name: 'agnieszka-mikolajczyk/skin-lesion'
+    accumulate_grad_batches: 2
+    epochs: 20
+
+mask_dirs:
+    train: 
+      hair_and_ruler: "/media/agnieszka/Data/data/skin-lesion/aug/hair-medium/"
+      frame: "/media/agnieszka/Data/data/skin-lesion/aug/hair-short/"
+    test:
+      hair_short: "/media/agnieszka/Data/data/skin-lesion/aug/hair-short/"
+      hair_medium: "/media/agnieszka/Data/data/skin-lesion/aug/hair-medium/"
+      hair_dense: "/media/agnieszka/Data/data/skin-lesion/aug/hair-medium/"
+      ruler: "/media/agnieszka/Data/data/skin-lesion/aug/hair-short/"
+      frame: "/media/agnieszka/Data/data/skin-lesion/aug/hair-short/"
+    
+training_plan:
+    architectures: 
+      names: ['densenet121', "efficientnet_b2", "vit_base_patch16_224", 'ecaresnet101d']
+      input_sizes: [224, 256, 224, 320]
+      batch_sizes: [2, 1, 1, 1]
+    probabilities: [0.25, 0.5, 0.75, 1.0]
+    augmentations: ["hair_and_ruler", "frame", "normal"]
