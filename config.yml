@@ -11,8 +11,8 @@ general:
 
 mask_dirs:
     train: 
-      hair_and_ruler: "/media/agnieszka/Data/data/skin-lesion/aug/hair-medium/"
-      frame: "/media/agnieszka/Data/data/skin-lesion/aug/hair-short/"
+      hair_and_ruler: "/media/agnieszka/Data/data/skin-lesion/aug/mask_merged/"
+      frame: "/media/agnieszka/Data/data/skin-lesion/aug/frames/"
     test:
       hair_short: "/media/agnieszka/Data/data/skin-lesion/aug/hair-short/"
       hair_medium: "/media/agnieszka/Data/data/skin-lesion/aug/hair-medium/"
