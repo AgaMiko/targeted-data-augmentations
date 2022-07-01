@@ -20,7 +20,7 @@ def get_transforms(image_size, type_aug='frame', mask_dir = None, aug_p=1.0):
         ])
     elif type_aug == "short":
         if mask_dir in [None, False, ""]:
-            mask_dir = "/media/agnieszka/Data/data/skin-lesion/aug/hair-short/"
+            raise ValueError("You did not provide mask_dir. Provide path to directory with hair or ruler masks.")
         transforms_train = albumentations.Compose([
             RandomHairTransform(
                 p=aug_p, mask_dir=mask_dir),
@@ -31,7 +31,8 @@ def get_transforms(image_size, type_aug='frame', mask_dir = None, aug_p=1.0):
             ToTensorV2()
         ])
     elif type_aug == "medium":
-        mask_dir="/media/agnieszka/Data/data/skin-lesion/aug/hair-medium/"
+        if mask_dir in [None, False, ""]:
+            raise ValueError("You did not provide mask_dir. Provide path to directory with hair or ruler masks.")
         transforms_train = albumentations.Compose([
             RandomHairTransform(
                 p=aug_p, mask_dir=mask_dir),
@@ -41,7 +42,8 @@ def get_transforms(image_size, type_aug='frame', mask_dir = None, aug_p=1.0):
             ToTensorV2()
         ])
     elif type_aug == "dense":
-        mask_dir="/media/agnieszka/Data/data/skin-lesion/aug/hair-dense/"
+        if mask_dir in [None, False, ""]:
+            raise ValueError("You did not provide mask_dir. Provide path to directory with hair or ruler masks.")
         transforms_train = albumentations.Compose([
             RandomHairTransform(
                 p=aug_p, mask_dir=mask_dir),
@@ -51,7 +53,8 @@ def get_transforms(image_size, type_aug='frame', mask_dir = None, aug_p=1.0):
             ToTensorV2()
         ])
     elif type_aug == "ruler":
-        mask_dir="/media/agnieszka/Data/data/skin-lesion/aug/hair-ruler/"
+        if mask_dir in [None, False, ""]:
+            raise ValueError("You did not provide mask_dir. Provide path to directory with hair or ruler masks.")
         transforms_train = albumentations.Compose([
             RandomHairTransform(
                 p=aug_p,mask_dir=mask_dir),
@@ -61,7 +64,8 @@ def get_transforms(image_size, type_aug='frame', mask_dir = None, aug_p=1.0):
             ToTensorV2()
         ])
     elif type_aug == "frame":
-        mask_dir="/media/agnieszka/Data/data/skin-lesion/aug/frames-aug/"
+        if mask_dir in [None, False, ""]:
+            raise ValueError("You did not provide mask_dir. Provide path to directory with hair or ruler masks.")
         transforms_train = albumentations.Compose([
             RandomFrameTransform(
                 p=aug_p, mask_dir=mask_dir),
