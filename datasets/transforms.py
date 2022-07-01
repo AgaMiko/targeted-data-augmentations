@@ -30,6 +30,7 @@ def get_transforms(image_size):
         # albumentations.ShiftScaleRotate(shift_limit=0.1, scale_limit=0.2, rotate_limit=15, border_mode=0, p=0.85),
         # albumentations.Resize(image_size, image_size),
         # albumentations.Cutout(max_h_size=int(image_size * 0.25), max_w_size=int(image_size * 0.25), num_holes=1, p=0.1),
+        albumentations.Resize(image_size, image_size),
         albumentations.Normalize(),
         ToTensorV2()
     ])
