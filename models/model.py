@@ -27,6 +27,8 @@ class LesionClassification(pl.LightningModule):
     def forward(self, x):
         if self.mode == "train":
             x = x['image']
+        else:
+            x = x['image'].cuda()
         out = self.model(x)
         return out
     

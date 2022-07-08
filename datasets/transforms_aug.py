@@ -18,7 +18,7 @@ def get_transforms(image_size, type_aug='frame', mask_dir = None, aug_p=1.0):
                                      [0.229, 0.224, 0.225]),
             ToTensorV2()
         ])
-    elif type_aug == "short":
+    elif type_aug == "hair_short":
         if mask_dir in [None, False, ""]:
             raise ValueError("You did not provide mask_dir. Provide path to directory with hair or ruler masks.")
         transforms_train = albumentations.Compose([
@@ -30,7 +30,7 @@ def get_transforms(image_size, type_aug='frame', mask_dir = None, aug_p=1.0):
                                      [0.229, 0.224, 0.225]),
             ToTensorV2()
         ])
-    elif type_aug == "medium":
+    elif type_aug == "hair_medium":
         if mask_dir in [None, False, ""]:
             raise ValueError("You did not provide mask_dir. Provide path to directory with hair or ruler masks.")
         transforms_train = albumentations.Compose([
@@ -41,7 +41,7 @@ def get_transforms(image_size, type_aug='frame', mask_dir = None, aug_p=1.0):
                                      [0.229, 0.224, 0.225]),
             ToTensorV2()
         ])
-    elif type_aug == "dense":
+    elif type_aug == "hair_dense":
         if mask_dir in [None, False, ""]:
             raise ValueError("You did not provide mask_dir. Provide path to directory with hair or ruler masks.")
         transforms_train = albumentations.Compose([
