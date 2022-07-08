@@ -7,7 +7,7 @@ import numpy
 class RandomFrameTransform:
     """Rotate by one of the given angles."""
 
-    def __init__(self, mask_dir="/media/agnieszka/Data/data/skin-lesion/aug/frames/",
+    def __init__(self, mask_dir,
                 image_type = "jpg",
                 p=0.5):
         self.mask_list =  glob.glob(mask_dir + "*."+ image_type)

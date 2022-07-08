@@ -27,3 +27,13 @@ training_plan:
       batch_sizes: [2, 1, 1, 1]
     probabilities: [0.25, 0.5, 0.75, 1.0]
     augmentations: ["hair_and_ruler", "frame", "normal"]
+
+cbi_plan:
+    architectures: 
+      names: ['densenet121', "efficientnet_b2", "vit_base_patch16_224", 'ecaresnet101d']
+      input_sizes: [224, 256, 224, 320]
+      batch_sizes: [2, 1, 1, 1]
+    dir_to_saved_models: "saved_models/"
+    augmentations: ["hair_short", "hair_medium", "hair_dense","ruler","frame"]
+    results_path: "cbi_results.tsv"
+    save_preds_dir: "results/"
