@@ -75,6 +75,14 @@ def get_transforms(image_size, type_aug='frame', mask_dir = None, aug_p=1.0):
                                      [0.229, 0.224, 0.225]),
             ToTensorV2()
         ])
+    elif type_aug == "normal":
+        transforms_train = albumentations.Compose([
+            albumentations.Resize(image_size, image_size),
+            albumentations.CenterCrop(image_size, image_size),
+            albumentations.Normalize([0.485, 0.456, 0.406],
+                                    [0.229, 0.224, 0.225]),
+            ToTensorV2()
+        ])
     else:
         raise ValueError
     transforms_val = albumentations.Compose([

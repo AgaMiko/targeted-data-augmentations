@@ -16,7 +16,7 @@ class RandomFrameTransform:
     
     def __call__(self, image, **params):
         p = random.randint(0, 100)
-        if p < self.p*100:
+        if p <= self.p*100:
             angle = random.randint(0, 360)
             mask_nr =  random.randint(0, self.len-1)
             mask = Image.open(self.mask_list[mask_nr]).convert('L')

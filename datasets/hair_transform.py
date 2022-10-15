@@ -18,7 +18,7 @@ class RandomHairTransform:
     
     def __call__(self, image, **params):
         p = random.randint(0, 100)
-        if p < self.p*100:
+        if p <= self.p*100:
             source_image = Image.fromarray(image)
             angle = random.randint(0, 360)
             hair_nr =  random.randint(0, self.len-1)

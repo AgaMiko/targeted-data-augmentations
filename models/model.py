@@ -30,7 +30,7 @@ class LesionClassification(pl.LightningModule):
         else:
             x = x['image'].cuda()
         out = self.model(x)
-        return out
+        return torch.softmax(out,dim=0)
     
     def configure_optimizers(self):        
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
