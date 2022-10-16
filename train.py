@@ -57,7 +57,8 @@ def main(args):
                     from datasets.transforms_aug import get_transforms, get_augmentation
                     mask_dir = config["mask_dirs"]["train"][mode]
                     train_transform, test_transform = get_transforms(
-                        img_size, type_aug=mode, mask_dir=mask_dir, aug_p=p)
+                        img_size, im_dir=config["mask_dirs"]["source_dir"],
+                        type_aug=mode, mask_dir=mask_dir, aug_p=p, mask_nr='random')
 
                 train_augmentation = get_augmentation(train_transform)
 

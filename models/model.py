@@ -30,13 +30,14 @@ class LesionClassification(pl.LightningModule):
         else:
             x = x['image'].cuda()
         out = self.model(x)
-        return torch.softmax(out,dim=0)
+        out = torch.softmax(out,dim=1)
+        return out
     
     def configure_optimizers(self):        
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
         lambd = lambda epoch: self.lr_decay
-        scheduler = MultiplicativeLR(self.optimizer, lr_lambda = lambd)
-        return [self.optimizer], [scheduler]
+        self.scheduler = MultiplicativeLR(self.optimizer, lr_lambda = lambd)
+        return [self.optimizer], [self.scheduler]
     
     def training_step(self, batch, batch_idx):
         x,y =  batch
@@ -74,5 +75,5 @@ class LesionClassification(pl.LightningModule):
         fig, ax = plt.subplots(figsize=(4,4))
         plot_confusion_matrix(all_y, all_ypred, ax=ax)
         self.logger.experiment.log_image('confusion_matrix', fig)
-        self.optimizer.step()
+        self.scheduler.step()
         
