@@ -5,7 +5,6 @@ from torchvision import datasets
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers.neptune import NeptuneLogger
-from efficientnet_pytorch import EfficientNet
 from utils.sampler_utils import create_weights_vector
 from models.model import LesionClassification
 import yaml
@@ -43,11 +42,12 @@ def main(args):
                                             num_classes=2,
                                             lr=5e-4,
                                             lr_decay=0.9)
+                
+                save_checkpoint_path = os.path.join(config["general"]["dir_to_save"],model_name+"_"+mode+"_"+str(p))
                 model_checkpoint = ModelCheckpoint(monitor="val_loss",
                                                 verbose=True,
-                                                filename="{epoch}_{val_loss:.4f}")
-                
-                save_checkpoint_path = os.path.join(config["general"]["dir_to_save"],model_name+"_"+mode+"_"+str(p)+".ckpt")
+                                                filename="{epoch}_{val_loss:.4f}",
+                                                dirpath=save_checkpoint_path)
                 
                 # load transforms
                 if mode == "normal":
@@ -57,7 +57,8 @@ def main(args):
                     from datasets.transforms_aug import get_transforms, get_augmentation
                     mask_dir = config["mask_dirs"]["train"][mode]
                     train_transform, test_transform = get_transforms(
-                        img_size, type_aug=mode, mask_dir=mask_dir, aug_p=p)
+                        img_size, im_dir=config["mask_dirs"]["source_dir"],
+                        type_aug=mode, mask_dir=mask_dir, aug_p=p, mask_nr='random')
 
                 train_augmentation = get_augmentation(train_transform)
 
@@ -90,10 +91,10 @@ def main(args):
                                     logger=logger,
                                     log_every_n_steps=5,
                                     accumulate_grad_batches=config["general"]["accumulate_grad_batches"],
-                                    fast_dev_run=True)
+                                    fast_dev_run=False)
                 trainer.fit(model, train_loader, test_loader)
 
-                trainer.save_checkpoint(save_checkpoint_path)
+                trainer.save_checkpoint(save_checkpoint_path+".ckpt")
     
 if __name__ == "__main__":
     parser = get_args_parser()

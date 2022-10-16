@@ -7,7 +7,6 @@ from datasets.frame_transform import RandomFrameTransform
 def get_transforms(image_size):
 
     transforms_train = albumentations.Compose([
-        RandomFrameTransform(p=0),
         albumentations.Resize(image_size, image_size),
         albumentations.Normalize(),
         ToTensorV2()
