@@ -94,9 +94,9 @@ def main(args):
               'mask_nr']
     models_to_explain = glob.glob(os.path.join(
         config["cbi_plan"]["dir_to_saved_models"], "*/*.ckpt"))
-    # with open(config["cbi_plan"]["results_path"], 'w', encoding='UTF-8', newline='') as f:
-    #     writer = csv.writer(f)
-    #     writer.writerow(header)
+    with open(config["cbi_plan"]["results_path"], 'w', encoding='UTF-8', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(header)
 
     # for each model from models_to_explain run Counterfactual Experiments
     # run aug_list for each model
