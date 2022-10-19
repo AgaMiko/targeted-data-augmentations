@@ -75,5 +75,7 @@ class LesionClassification(pl.LightningModule):
         fig, ax = plt.subplots(figsize=(4,4))
         plot_confusion_matrix(all_y, all_ypred, ax=ax)
         self.logger.experiment.log_image('confusion_matrix', fig)
+        self.optimizer.step()
         self.scheduler.step()
+        
         

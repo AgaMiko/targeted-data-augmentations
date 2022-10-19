@@ -127,109 +127,110 @@ def main(args):
                 model = model.to("cuda")
                 # counterfactual experiments start
                 for aug_nr, aug_type in enumerate(augmentation_names):
-                    mask_dir = config["mask_dirs"]["test"][aug_type]
-                    for mask_nr in config["cbi_plan"]["masks_to_test"]:
-                        # biased data
-                        biased_test_transform, _ = get_transforms(
-                            img_size, 
-                            im_dir=config["mask_dirs"]["source_dir"],
-                            type_aug=aug_type,
-                            mask_dir=mask_dir,
-                            aug_p=1.0,
-                            rotate=False,
-                            mask_nr=mask_nr)
-                        biased_test_transform = get_augmentation(
-                            biased_test_transform)
-                        biased_test_set = datasets.ImageFolder(root=config["general"]["test_dir"],
-                                                               transform=biased_test_transform)
-                        biased_test_loader = DataLoader(
-                            biased_test_set, batch_size=batch_size, shuffle=False, num_workers=0)
-                        classes = list(biased_test_set.class_to_idx.keys())
+                    if aug_type == "normal" or aug_type in filename or aug_type.split("_")[0] in filename:
+                        mask_dir = config["mask_dirs"]["test"][aug_type]
+                        for mask_nr in config["cbi_plan"]["masks_to_test"]:
+                            # biased data
+                            biased_test_transform, _ = get_transforms(
+                                img_size, 
+                                im_dir=config["mask_dirs"]["source_dir"],
+                                type_aug=aug_type,
+                                mask_dir=mask_dir,
+                                aug_p=1.0,
+                                rotate=False,
+                                mask_nr=mask_nr)
+                            biased_test_transform = get_augmentation(
+                                biased_test_transform)
+                            biased_test_set = datasets.ImageFolder(root=config["general"]["test_dir"],
+                                                                transform=biased_test_transform)
+                            biased_test_loader = DataLoader(
+                                biased_test_set, batch_size=batch_size, shuffle=False, num_workers=0)
+                            classes = list(biased_test_set.class_to_idx.keys())
 
-                        # clean data
-                        _, clean_test_transform = get_transforms(
-                            img_size,
-                            type_aug="normal",
-                            mask_dir=mask_dir,
-                            aug_p=0.0)
-                        clean_test_transform = get_augmentation(
-                            clean_test_transform)
-                        clean_test_set = datasets.ImageFolder(root=config["general"]["test_dir"],
-                                                              transform=clean_test_transform)
-                        clean_test_loader = DataLoader(
-                            clean_test_set, batch_size=batch_size, shuffle=False, num_workers=0)
+                            # clean data
+                            _, clean_test_transform = get_transforms(
+                                img_size,
+                                type_aug="normal",
+                                mask_dir=mask_dir,
+                                aug_p=0.0)
+                            clean_test_transform = get_augmentation(
+                                clean_test_transform)
+                            clean_test_set = datasets.ImageFolder(root=config["general"]["test_dir"],
+                                                                transform=clean_test_transform)
+                            clean_test_loader = DataLoader(
+                                clean_test_set, batch_size=batch_size, shuffle=False, num_workers=0)
 
-                        prob_diff = list()
-                        targets = list()
-                        pred_clean = list()
-                        pred_biased = list()
-                        pred_clean = list()
-                        pred_biased = list()
-                        probs = dict()
-                        probs["clean"] = {
-                            "mal": list(),
-                            "ben": list(),
-                        }
-                        probs["aug"] = {
-                            "mal": list(),
-                            "ben": list(),
-                        }
+                            prob_diff = list()
+                            targets = list()
+                            pred_clean = list()
+                            pred_biased = list()
+                            pred_clean = list()
+                            pred_biased = list()
+                            probs = dict()
+                            probs["clean"] = {
+                                "mal": list(),
+                                "ben": list(),
+                            }
+                            probs["aug"] = {
+                                "mal": list(),
+                                "ben": list(),
+                            }
 
-                        for i, (batch, batch_aug) in tqdm(enumerate(zip(clean_test_loader, biased_test_loader))):
-                            predicted_class, labels, prob_clean = make_prediction(
-                                batch, model)
-                            predicted_class_aug, labels, prob_aug = make_prediction(
-                                batch_aug, model)
+                            for i, (batch, batch_aug) in tqdm(enumerate(zip(clean_test_loader, biased_test_loader))):
+                                predicted_class, labels, prob_clean = make_prediction(
+                                    batch, model)
+                                predicted_class_aug, labels, prob_aug = make_prediction(
+                                    batch_aug, model)
 
-                            pred_clean.extend(predicted_class)
-                            pred_biased.extend(predicted_class_aug)
-                            probs = update_probs(probs, prob_clean, prob_aug)
-                            targets.extend(labels)
+                                pred_clean.extend(predicted_class)
+                                pred_biased.extend(predicted_class_aug)
+                                probs = update_probs(probs, prob_clean, prob_aug)
+                                targets.extend(labels)
 
-                        print("===============SUMMARY===============")
-                        print(model_name)
-                        f1 = f1_score(targets, pred_clean, zero_division=1)
-                        f1_aug = f1_score(
-                            targets, pred_biased, zero_division=1)
-                        recall = recall_score(
-                            targets, pred_clean, zero_division=1)
-                        recall_aug = recall_score(
-                            targets, pred_biased, zero_division=1)
-                        precision = precision_score(
-                            targets, pred_clean, zero_division=1)
-                        precision_aug = precision_score(
-                            targets, pred_biased, zero_division=1)
-                        switched, ben_to_mal, mal_to_ben = switched_score(
-                            pred_clean, pred_biased)
+                            print("===============SUMMARY===============")
+                            print(model_name)
+                            f1 = f1_score(targets, pred_clean, zero_division=1)
+                            f1_aug = f1_score(
+                                targets, pred_biased, zero_division=1)
+                            recall = recall_score(
+                                targets, pred_clean, zero_division=1)
+                            recall_aug = recall_score(
+                                targets, pred_biased, zero_division=1)
+                            precision = precision_score(
+                                targets, pred_clean, zero_division=1)
+                            precision_aug = precision_score(
+                                targets, pred_biased, zero_division=1)
+                            switched, ben_to_mal, mal_to_ben = switched_score(
+                                pred_clean, pred_biased)
 
-                        # counterfactual experiments end
-                        print("Saving results to file...")
-                        data = [model_name, augmentation_names[aug_nr], p,
-                                switched, mal_to_ben, ben_to_mal,
-                                f1, f1_aug, recall, recall_aug, precision, precision_aug,
-                                model_path, mask_nr]
+                            # counterfactual experiments end
+                            print("Saving results to file...")
+                            data = [model_name, augmentation_names[aug_nr], p,
+                                    switched, mal_to_ben, ben_to_mal,
+                                    f1, f1_aug, recall, recall_aug, precision, precision_aug,
+                                    model_path, mask_nr]
 
-                        with open(config["cbi_plan"]["results_path"], 'a', encoding='UTF-8', newline='') as f:
-                            writer = csv.writer(f)
-                            writer.writerow(data)
+                            with open(config["cbi_plan"]["results_path"], 'a', encoding='UTF-8', newline='') as f:
+                                writer = csv.writer(f)
+                                writer.writerow(data)
 
-                        data = [
-                            probs["clean"]["mal"],
-                            probs["clean"]["ben"],
-                            probs["aug"]["mal"],
-                            probs["aug"]["ben"],
-                            labels,
-                        ]
-                        header = ["prob_clean_mal", "prob_clean_ben",
-                                  "prob_bias_mal", "prob_bias_ben", "label"]
+                            data = [
+                                probs["clean"]["mal"],
+                                probs["clean"]["ben"],
+                                probs["aug"]["mal"],
+                                probs["aug"]["ben"],
+                                labels,
+                            ]
+                            header = ["prob_clean_mal", "prob_clean_ben",
+                                    "prob_bias_mal", "prob_bias_ben", "label"]
 
-                        new_file = config["cbi_plan"]["save_preds_dir"] + \
-                            filename + ".csv"
-                        with open(new_file, 'w', encoding='UTF-8', newline='') as f:
+                            new_file = config["cbi_plan"]["save_preds_dir"] + \
+                                filename + ".csv"
+                            with open(new_file, 'w', encoding='UTF-8', newline='') as f:
 
-                            writer = csv.writer(f)
-                            writer.writerow(header)
-                            writer.writerow(data)
+                                writer = csv.writer(f)
+                                writer.writerow(header)
+                                writer.writerow(data)
 
 
 if __name__ == "__main__":

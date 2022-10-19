@@ -40,7 +40,7 @@ def main(args):
                 # prepare model for training
                 model = LesionClassification(model=model_name,
                                             num_classes=2,
-                                            lr=5e-4,
+                                            lr=1e-5,
                                             lr_decay=0.9)
                 
                 save_checkpoint_path = os.path.join(config["general"]["dir_to_save"],model_name+"_"+mode+"_"+str(p))

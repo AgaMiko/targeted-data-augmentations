@@ -1,39 +1,41 @@
 general:
-    train_dir: "/media/agnieszka/Data/data/skin-lesion/train/"
-    test_dir: "/media/agnieszka/Data/data/skin-lesion/test/"
-    num_workers: 0
+    train_dir: "/media/agnieszka/Data/data/skin-lesion/kaggle/archive/train/train/"
+    test_dir: "/media/agnieszka/Data/data/skin-lesion/kaggle/archive/train/val/"
+    num_workers: 4
     gpu: [0]
     dir_to_save: "saved_models/"
     seed: 2021
     nepune_project_name: 'agnieszka-mikolajczyk/skin-lesion'
-    accumulate_grad_batches: 2
-    epochs: 20
+    accumulate_grad_batches: 4
+    epochs: 2
 
 mask_dirs:
+    source_dir: "/media/agnieszka/Data/data/skin-lesion/aug/source_merged/"
     train: 
       hair_and_ruler: "/media/agnieszka/Data/data/skin-lesion/aug/mask_merged/"
-      frame: "/media/agnieszka/Data/data/skin-lesion/aug/frames/"
+      frame: "/media/agnieszka/Data/data/skin-lesion/aug/frames-aug/"
     test:
       hair_short: "/media/agnieszka/Data/data/skin-lesion/aug/hair-short/"
       hair_medium: "/media/agnieszka/Data/data/skin-lesion/aug/hair-medium/"
-      hair_dense: "/media/agnieszka/Data/data/skin-lesion/aug/hair-medium/"
-      ruler: "/media/agnieszka/Data/data/skin-lesion/aug/hair-short/"
-      frame: "/media/agnieszka/Data/data/skin-lesion/aug/hair-short/"
+      hair_dense: "/media/agnieszka/Data/data/skin-lesion/aug/hair-dense/"
+      ruler: "/media/agnieszka/Data/data/skin-lesion/aug/hair-ruler/"
+      frame: "/media/agnieszka/Data/data/skin-lesion/aug/frame/"
     
 training_plan:
     architectures: 
-      names: ['densenet121', "efficientnet_b2", "vit_base_patch16_224", 'ecaresnet101d']
-      input_sizes: [224, 256, 224, 320]
-      batch_sizes: [2, 1, 1, 1]
+      names: ["vit_base_patch16_224"]
+      input_sizes: [224, 224, 224]
+      batch_sizes: [16, 16, 16]
     probabilities: [0.25, 0.5, 0.75, 1.0]
     augmentations: ["hair_and_ruler", "frame", "normal"]
 
 cbi_plan:
     architectures: 
-      names: ['densenet121', "efficientnet_b2", "vit_base_patch16_224", 'ecaresnet101d']
-      input_sizes: [224, 256, 224, 320]
-      batch_sizes: [2, 1, 1, 1]
+      names: ["efficientnet_b2",'densenet121',"vit_base_patch16_224"]
+      input_sizes: [224, 256, 224]
+      batch_sizes: [4, 4, 4]
     dir_to_saved_models: "saved_models/"
-    augmentations: ["hair_short", "hair_medium", "hair_dense","ruler","frame"]
+    augmentations: ["frame", "hair_short", "hair_medium", "hair_dense","ruler"]
     results_path: "cbi_results.tsv"
     save_preds_dir: "results/"
+    masks_to_test: [0, 1, 2, 3, 4]
