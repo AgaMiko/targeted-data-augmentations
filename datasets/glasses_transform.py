@@ -19,7 +19,7 @@ class RandomGlassesTransform:
         
     def __call__(self, image, **params):
         p = random.randint(0, 100)
-        if p <= self.p*100
+        if p <= self.p*100:
             if self.rotate:
                 angle = random.randint(0, 360)
             if self.mask_nr in ['random', None]:
