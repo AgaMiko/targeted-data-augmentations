@@ -4,6 +4,7 @@ from albumentations.pytorch.transforms import ToTensorV2
 
 from datasets.frame_transform import RandomFrameTransform
 from datasets.hair_transform import RandomHairTransform
+from datasets.glasses_transform import RandomGlassesTransform
 
 
 def get_transforms(image_size, im_dir=None, type_aug='frame', mask_dir=None, aug_p=1.0, rotate=True, mask_nr='random'):
@@ -38,6 +39,19 @@ def get_transforms(image_size, im_dir=None, type_aug='frame', mask_dir=None, aug
         ])
     elif type_aug == "normal":
         transforms_train = albumentations.Compose([
+            albumentations.Resize(image_size, image_size),
+            albumentations.CenterCrop(image_size, image_size),
+            albumentations.Normalize([0.485, 0.456, 0.406],
+                                     [0.229, 0.224, 0.225]),
+            ToTensorV2()
+        ])
+     elif type_aug == "glasses":
+        if mask_dir in [None, False, ""]:
+            raise ValueError(
+                "You did not provide mask_dir. Provide path to directory with glasses masks.")
+        transforms_train = albumentations.Compose([
+            RandomGlassesTransform(
+                p=aug_p, mask_dir=mask_dir, rotate=rotate, mask_nr=mask_nr),
             albumentations.Resize(image_size, image_size),
             albumentations.CenterCrop(image_size, image_size),
             albumentations.Normalize([0.485, 0.456, 0.406],
