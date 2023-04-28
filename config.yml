@@ -1,6 +1,6 @@
 general:
-    train_dir: "/media/agnieszka/Data/data/skin-lesion/kaggle/archive/train/train/"
-    test_dir: "/media/agnieszka/Data/data/skin-lesion/kaggle/archive/train/val/"
+    train_dir: "data/skin-lesion/kaggle/archive/train/train/"
+    test_dir: "data/skin-lesion/kaggle/archive/train/val/"
     num_workers: 4
     gpu: [0]
     dir_to_save: "saved_models/"
@@ -10,16 +10,16 @@ general:
     epochs: 2
 
 mask_dirs:
-    source_dir: "/media/agnieszka/Data/data/skin-lesion/aug/source_merged/"
+    source_dir: "data/skin-lesion/aug/source_merged/"
     train: 
-      hair_and_ruler: "/media/agnieszka/Data/data/skin-lesion/aug/mask_merged/"
-      frame: "/media/agnieszka/Data/data/skin-lesion/aug/frames-aug/"
+      hair_and_ruler: "data/skin-lesion/aug/mask_merged/"
+      frame: "data/skin-lesion/aug/frames-aug/"
     test:
-      hair_short: "/media/agnieszka/Data/data/skin-lesion/aug/hair-short/"
-      hair_medium: "/media/agnieszka/Data/data/skin-lesion/aug/hair-medium/"
-      hair_dense: "/media/agnieszka/Data/data/skin-lesion/aug/hair-dense/"
-      ruler: "/media/agnieszka/Data/data/skin-lesion/aug/hair-ruler/"
-      frame: "/media/agnieszka/Data/data/skin-lesion/aug/frame/"
+      hair_short: "data/skin-lesion/aug/hair-short/"
+      hair_medium: "data/skin-lesion/aug/hair-medium/"
+      hair_dense: "data/skin-lesion/aug/hair-dense/"
+      ruler: "data/skin-lesion/aug/hair-ruler/"
+      frame: "data/skin-lesion/aug/frame/"
     
 training_plan:
     architectures: 
