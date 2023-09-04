@@ -1,4 +1,7 @@
 # Targeted Data Augmentation for bias mitigation
+
+🔗 Paper: [Targeted Data Augmentation for bias mitigation, Agnieszka Mikołajczyk-Bareła, Maria Ferlin, Michał Grochowski](https://arxiv.org/abs/2308.11386)
+
 ## Introduction
 Data augmentation (DA) plays a vital role in enhancing the efficiency of deep learning-based systems. However, the existence of bias can distort or undermine the results of machine learning models without being immediately apparent. Removing bias from data is a challenging and time-consuming task, but it is essential to ensure the validity and fairness of machine learning models. Unfortunately, the traditional approach of removing bias can lead to new artifacts or residual biases, which are difficult to address even with advanced techniques like image inpainting.
 
