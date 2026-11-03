@@ -45,7 +45,7 @@ def get_transforms(image_size, im_dir=None, type_aug='frame', mask_dir=None, aug
                                      [0.229, 0.224, 0.225]),
             ToTensorV2()
         ])
-     elif type_aug == "glasses":
+    elif type_aug == "glasses":
         if mask_dir in [None, False, ""]:
             raise ValueError(
                 "You did not provide mask_dir. Provide path to directory with glasses masks.")

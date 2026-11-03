@@ -1,0 +1,20 @@
+torch
+torchvision
+# train.py and models/model.py use gpus= and validation_epoch_end, removed in 2.0
+pytorch-lightning<2.0
+timm
+efficientnet_pytorch
+albumentations
+# the transforms use Image.ANTIALIAS, removed in Pillow 10
+Pillow<10
+numpy
+pandas
+scikit-learn
+scikit-plot
+matplotlib
+pyyaml
+tqdm
+# train.py logs to Neptune
+neptune-client
+# only for utils/analyze_data.py
+openpyxl

@@ -8,7 +8,11 @@ This repository contains the code and resources for the paper:
 
 **"Targeted Data Augmentation for Improving Model Robustness"**
 
-The project introduces a novel method called **Targeted Data Augmentation (TDA)** for mitigating biases in machine learning models, particularly in deep learning for computer vision tasks. The code includes implementations of TDA and the **Counterfactual Bias Insertion (CBI)** method used for bias identification and evaluation.
+The project introduces a method called **Targeted Data Augmentation (TDA)** for reducing bias in computer vision models. The code includes TDA and **Counterfactual Bias Insertion (CBI)**, the method used to measure how much a bias affects a model's predictions.
+
+![Bias artifacts: frame, ruler, glasses](assets/bias-artifacts.svg)
+
+![Why targeted augmentation helps](assets/why-tda.svg)
 
 ## Table of Contents
 
@@ -20,82 +24,79 @@ The project introduces a novel method called **Targeted Data Augmentation (TDA)*
 - [Installation](#installation)
 - [Usage](#usage)
   - [Data Preparation](#data-preparation)
+  - [Configuration](#configuration)
   - [Targeted Data Augmentation (TDA)](#targeted-data-augmentation-tda)
-  - [Counterfactual Bias Insertion (CBI)](#counterfactual-bias-insertion-cbi)
   - [Training Models](#training-models)
-  - [Evaluating Models](#evaluating-models)
-- [Results](#results)
-- [Reproducing Experiments](#reproducing-experiments)
+  - [Counterfactual Bias Insertion (CBI)](#counterfactual-bias-insertion-cbi)
+  - [Analyzing CBI Results](#analyzing-cbi-results)
 - [Contributing](#contributing)
 - [License](#license)
-- [Contact](#contact)
+- [FAQs](#faqs)
 
 ## Features
 
-- **Targeted Data Augmentation (TDA):** A method to mitigate biases by intentionally introducing them during training.
-- **Counterfactual Bias Insertion (CBI):** A technique to evaluate the influence of biases on model predictions.
-- Scripts for training and evaluating models on:
-  - **ISIC-2020 Skin Lesion Dataset**
-  - **Gender Classification Dataset**
-- Support for multiple neural network architectures:
-  - DenseNet121
-  - EfficientNet-B2
-  - Vision Transformer (ViT)
+- **Targeted Data Augmentation (TDA):** reduces bias by inserting the bias artifact into training images at random, so it appears in every class.
+- **Counterfactual Bias Insertion (CBI):** measures how often a model changes its prediction when only a bias artifact is added to a test image.
+- Bias artifacts:
+  - **Frames** (dark circular border from the dermoscope) on skin lesion images
+  - **Hair** (short, medium, dense) and **rulers** on skin lesion images
+  - **Glasses** on face images
+- Any classification model from [timm](https://github.com/huggingface/pytorch-image-models). The experiments used:
+  - DenseNet121 (`densenet121`)
+  - EfficientNet-B2 (`efficientnet_b2`)
+  - Vision Transformer (`vit_base_patch16_224`)
 
 ## Project Structure
 
 ```
-├── data/
-│   ├── isic_2020/
-│   ├── gender_classification/
-│   ├── masks/
-│       ├── rulers/
-│       ├── frames/
-│       └── glasses/
-├── models/
-│   ├── densenet121.py
-│   ├── efficientnet_b2.py
-│   └── vit.py
-├── scripts/
-│   ├── train.py
-│   ├── evaluate.py
-│   ├── augmentations.py
-│   ├── cbi.py
-│   └── utils.py
-├── results/
+├── assets/                      # README illustrations
+├── config.yml                   # paths, training plan and CBI plan
 ├── requirements.txt
 ├── LICENSE
-└── README.md
+├── train.py                     # trains models with and without TDA
+├── cbi.py                       # runs Counterfactual Bias Insertion on saved models
+├── datasets/
+│   ├── transforms.py            # transforms without bias insertion (baseline training)
+│   ├── transforms_aug.py        # transforms with bias insertion (TDA and CBI)
+│   ├── transforms_infer.py      # standard augmentations (flips, colour, cutout)
+│   ├── frame_transform.py       # RandomFrameTransform
+│   ├── hair_transform.py        # RandomHairTransform (hair and rulers)
+│   └── glasses_transform.py     # RandomGlassesTransform
+├── models/
+│   └── model.py                 # LesionClassification (PyTorch Lightning + timm)
+└── utils/
+    ├── analyze_data.py          # aggregates CBI results into an Excel file
+    ├── sampler_utils.py         # class weights for the weighted sampler
+    ├── rand_split.py            # splits ISIC 2020 into train and test folders
+    ├── load_csv.py              # moves images into class folders from a CSV
+    ├── move_matching_ims.py     # copies images that have a matching mask
+    └── resize_all.py            # resizes masks to 768x768
 ```
+
+The scripts in `utils/` are one-off data preparation helpers. Their paths are hard-coded, so edit them before running.
 
 ## Datasets
 
-### Full dataset  
+- **ISIC 2020 skin lesion dataset:** dermoscopic images labelled benign or malignant, originally from the [Kaggle SIIM-ISIC Melanoma Classification Challenge](https://www.kaggle.com/c/siim-isic-melanoma-classification/data).
+- **Gender classification dataset:** cropped face images labelled by gender, originally from the [Kaggle Gender Classification Dataset](https://www.kaggle.com/datasets/cashutosh/gender-classification-dataset).
+- **Masks for augmentation:** frame, hair, ruler and glasses masks.
+- **Manual bias annotations** for both datasets.
 
-* Masks for Augmentation:
-* **Ruler Masks:** Used for skin lesion images, **Frame Masks:** Used for skin lesion images, **Glasses Masks:** Used for face images.
-* **Gender Classification Dataset ** (A dataset of cropped face images labeled by gender) originally from [Kaggle Gender Classification Dataset](https://www.kaggle.com/datasets/cashutosh/gender-classification-dataset)
-* **ISIC-2020 Skin Lesion Dataset** (A dataset containing dermoscopic images for skin lesion classification.) originally from [Kaggle SIIM-ISIC Melanoma Classification Challenge](https://www.kaggle.com/c/siim-isic-melanoma-classification/data
-* Manual bias annotations 
-
-**Access:** [Data Repository](https://mostwiedzy.pl/pl/open-research-data/bias-mitigation-benchmark-that-includes-two-datasets,227084836236401-0?_share=322e9564d0341d8a)
+The masks, annotations and prepared datasets are available in the [Data Repository](https://mostwiedzy.pl/pl/open-research-data/bias-mitigation-benchmark-that-includes-two-datasets,227084836236401-0?_share=322e9564d0341d8a).
 
 ## Requirements
 
 - Python 3.7 or higher
-- PyTorch 1.7 or higher
-- torchvision
-- NumPy
-- Pandas
-- scikit-learn
-- OpenCV
-- Matplotlib
+- PyTorch and torchvision
+- PyTorch Lightning 1.x (the code uses `gpus=` and `validation_epoch_end`, which were removed in 2.0)
+- timm, efficientnet_pytorch
+- albumentations
+- Pillow below 10 (the code uses `Image.ANTIALIAS`, which was removed in Pillow 10)
+- NumPy, pandas, scikit-learn, scikit-plot, Matplotlib, PyYAML, tqdm
+- neptune-client (training logs go to [Neptune](https://neptune.ai))
+- openpyxl (only for `utils/analyze_data.py`)
 
-You can install the required packages using:
-
-```bash
-pip install -r requirements.txt
-```
+A GPU is required. `cbi.py` and the validation step move tensors to CUDA.
 
 ## Installation
 
@@ -119,178 +120,186 @@ pip install -r requirements.txt
    pip install -r requirements.txt
    ```
 
-4. **Download the datasets**
+4. **Set your Neptune API token** (used by `train.py`)
 
-   - Follow the links provided in the [Datasets](#datasets) section to download the datasets.
-   - Place the datasets in the `data/` directory as structured above.
+   ```bash
+   export NEPTUNE_API_TOKEN="your-token"
+   ```
 
 ## Usage
 
 ### Data Preparation
 
-1. **Prepare the ISIC-2020 Skin Lesion Dataset**
+Images are loaded with `torchvision.datasets.ImageFolder`, so each split needs one folder per class. With the default `config.yml`, the layout is:
 
-   - Extract the images and place them in `data/isic_2020/images/`.
-   - Place the metadata and labels in `data/isic_2020/`.
+```
+data/skin-lesion/
+├── kaggle/archive/train/
+│   ├── train/                # training images
+│   │   ├── benign/
+│   │   └── malignant/
+│   └── val/                  # test images, also used by CBI
+│       ├── benign/
+│       └── malignant/
+└── aug/
+    ├── source_merged/        # images that hair and ruler pixels are copied from
+    ├── mask_merged/          # hair and ruler masks used in training
+    ├── frames-aug/           # frame masks used in training
+    ├── frame/                # frame masks used in CBI
+    ├── hair-short/           # hair masks used in CBI
+    ├── hair-medium/
+    ├── hair-dense/
+    └── hair-ruler/           # ruler masks used in CBI
+```
 
-2. **Prepare the Gender Classification Dataset**
+Masks are `.jpg` files (`.png` for glasses). Each hair or ruler mask must have the same file name as its source image in `source_merged/`.
 
-   - Extract the images and place them in `data/gender_classification/images/`.
-   - Place the labels in `data/gender_classification/`.
+### Configuration
 
-3. **Prepare the Masks for Augmentation**
+Both scripts read `config.yml` (or another file passed with `--model_config_path`).
 
-   - Download the masks from the [Data Repository](https://mostwiedzy.pl/pl/open-research-data/bias-mitigation-benchmark-that-includes-two-datasets,227084836236401-0?_share=322e9564d0341d8a).
-   - Place the masks in the corresponding directories under `data/masks/`.
+- `general`: data paths, GPUs, number of epochs, gradient accumulation, the folder for saved models and the Neptune project name.
+- `mask_dirs`: mask folders for training (`train`) and for CBI (`test`), plus `source_dir` for hair and ruler source images.
+- `training_plan`: which architectures, bias types and probabilities `train.py` loops over.
+- `cbi_plan`: which saved models, bias types and masks `cbi.py` tests, and where it writes results.
 
 ### Targeted Data Augmentation (TDA)
 
-**Targeted Data Augmentation (TDA)** is implemented in the `augmentations.py` script. The main idea is to randomly insert bias artifacts (e.g., frames, rulers, glasses) into training images with a specified probability.
+TDA inserts a bias artifact (a frame, hair, a ruler or glasses) into a training image with probability `p`. Because the artifact then appears in images of every class, the model can no longer use it to tell the classes apart.
 
-**Implementation Details:**
+![Targeted Data Augmentation pipeline](assets/tda-pipeline.svg)
 
-- **Augmentation Functions:**
+Each artifact has its own transform in `datasets/`. All of them work the same way:
 
-  - `add_frame(image, frame_masks)`: Adds a randomly selected frame mask to the image.
-  - `add_ruler(image, ruler_masks)`: Adds a randomly selected ruler mask to the image.
-  - `add_glasses(image, glasses_masks)`: Adds a randomly selected glasses mask to the image.
+1. Draw a random number. If it is above `p`, return the image unchanged.
+2. Pick a mask: a random one during training, or a fixed one (`mask_nr`) during CBI.
+3. Optionally rotate the mask by a random angle (`rotate=True` in training, `False` in CBI).
+4. Paste the artifact into the image using the mask.
 
-- **How It Works:**
+| Transform | Bias type names | How the artifact is inserted |
+|---|---|---|
+| `RandomFrameTransform` | `frame` | Resizes a frame mask to the image size and pastes it over the image. |
+| `RandomHairTransform` | `hair_short`, `hair_medium`, `hair_dense`, `ruler`, `hair_and_ruler` | Copies the hair or ruler pixels from the matching source image in `source_dir`. |
+| `RandomGlassesTransform` | `glasses` | Resizes a glasses mask to the image width and pastes it across the upper part of the face. |
 
-  1. **Random Selection:** A mask is randomly selected from the available masks corresponding to the specified bias type.
-  2. **Transformation:** The mask is resized, rotated, or scaled as needed to fit the target image.
-  3. **Application:** The mask is overlaid onto the image at a random or specified position.
-  4. **Probability:** The augmentation is applied with a certain probability `p`, which can be adjusted.
-
-- **Usage in Training:**
-
-  - During training, TDA is applied on-the-fly within the data loader. The `CustomDataset` class handles the application of TDA based on the specified parameters.
-
-**Parameters:**
-
-- `tda`: Boolean flag to enable or disable TDA.
-- `bias_type`: Type of bias to augment (`'frame'`, `'ruler'`, `'glasses'`).
-- `bias_prob`: Probability of applying the augmentation.
-
-### Counterfactual Bias Insertion (CBI)
-
-**Counterfactual Bias Insertion (CBI)** is implemented in the `cbi.py` script. CBI measures the influence of biases on model predictions by comparing the model's output on original images and images with inserted biases.
-
-**Implementation Details:**
-
-- **Process:**
-
-  1. **Compute Original Predictions:**
-
-     - Pass the original images through the model to obtain predictions.
-
-  2. **Insert Biases into Images:**
-
-     - Use the same augmentation functions (`add_frame`, `add_ruler`, `add_glasses`) to insert biases into the images.
-
-  3. **Compute Biased Predictions:**
-
-     - Pass the biased images through the model to obtain new predictions.
-
-  4. **Compare Predictions:**
-
-     - Compare the original and biased predictions to determine how many predictions changed (switched classes).
-
-- **Usage in Evaluation:**
-
-  - The `evaluate.py` script utilizes CBI to compute bias influence metrics.
-
-
-**Running CBI Evaluation:**
-
-In the `evaluate.py` script:
-
-```python
-from cbi import compute_cbi
-
-# Load masks for bias insertion
-masks = load_masks(args.bias_type)
-
-# Compute CBI metrics
-switched, switched_percentage = compute_cbi(model, dataloader, args.bias_type, masks)
-print(f"Number of switched predictions: {switched}")
-print(f"Percentage of switched predictions: {switched_percentage:.2f}%")
-```
+`get_transforms()` in `datasets/transforms_aug.py` builds the full pipeline: bias insertion, resize, centre crop and normalisation.
 
 ### Training Models
 
-Run the `train.py` script to train a model with or without targeted data augmentation.
-
-**Example: Training DenseNet121 on the ISIC-2020 dataset with TDA**
-
 ```bash
-python scripts/train.py \
-  --model densenet121 \
-  --dataset isic \
-  --epochs 5 \
-  --batch-size 64 \
-  --learning-rate 5e-4 \
-  --augmentation tda \
-  --bias-type frame \
-  --bias-probability 0.5 \
-  --output-dir results/densenet121_isic_tda_frame_p0.5
+python train.py --model_config_path config.yml
 ```
 
-**Parameters:**
+`train.py` trains one model for every combination in `training_plan`:
 
-- `--model`: Model architecture (`densenet121`, `efficientnet_b2`, `vit`)
-- `--dataset`: Dataset to use (`isic`, `gender`)
-- `--epochs`: Number of training epochs
-- `--batch-size`: Batch size
-- `--learning-rate`: Learning rate
-- `--augmentation`: Augmentation type (`'none'`, `'tda'`)
-- `--bias-type`: Type of bias to augment (`'frame'`, `'ruler'`, `'glasses'`)
-- `--bias-probability`: Probability of applying the bias augmentation (e.g., `0.5`)
-- `--output-dir`: Directory to save model checkpoints and logs
+- each architecture in `architectures.names`
+- each bias type in `augmentations` (`normal` means no TDA)
+- each probability in `probabilities` (`normal` is trained only once, with `p = 0`)
 
-### Evaluating Models
+For example, this plan trains a ViT once without TDA and four times each with `hair_and_ruler` and `frame` TDA:
 
-Run the `evaluate.py` script to evaluate a trained model and compute bias metrics using CBI.
-
-**Example: Evaluating the trained model**
-
-```bash
-python scripts/evaluate.py \
-  --model-path results/densenet121_isic_tda_frame_p0.5/model_best.pth \
-  --dataset isic \
-  --batch-size 64 \
-  --bias-type frame \
-  --output-dir results/densenet121_isic_tda_frame_p0.5/evaluation
+```yaml
+training_plan:
+    architectures:
+      names: ["vit_base_patch16_224"]
+      input_sizes: [224]
+      batch_sizes: [16]
+    probabilities: [0.25, 0.5, 0.75, 1.0]
+    augmentations: ["hair_and_ruler", "frame", "normal"]
 ```
 
-### Reproducing Experiments
+Training details:
 
-To reproduce the experiments from the paper:
+- Adam optimiser, learning rate `1e-5`, multiplied by 0.9 after each epoch
+- A weighted random sampler (weights 0.2 for benign, 0.8 for malignant) to deal with class imbalance
+- Checkpoints are saved to `saved_models/<model>_<bias type>_<p>/` (lowest validation loss) and `saved_models/<model>_<bias type>_<p>.ckpt` (final model)
 
-1. **Train the models with specified parameters**
+### Counterfactual Bias Insertion (CBI)
 
-   - Use the `train.py` script with the configurations provided in the paper's **Training Details** section.
+CBI answers one question: **if the only change to an image is an added bias artifact, does the model change its prediction?**
 
-2. **Evaluate the models**
+A model that has learned the correct features should give the same answer for a lesion with or without a frame. A model that has learned "frame means malignant" will switch some benign predictions to malignant once a frame is added. CBI counts these switches.
 
-   - Use the `evaluate.py` script to compute the standard metrics and bias influence using CBI.
+![Counterfactual Bias Insertion](assets/cbi.svg)
 
-3. **Scripts and Configurations**
+**How it works**
 
-   - All scripts and configuration files used in the experiments are available in the `scripts/` and `configs/` directories.
+For each test image, CBI makes two versions:
 
-4. **Results**
+- the **original** image
+- a **counterfactual** image: the same image with the bias artifact inserted
 
-   - The results, including metrics and logs, will be saved in the specified `--output-dir`.
+Both go through the same trained model. If the two predicted classes differ, the image counts as a **switched prediction**.
 
-## Results
+To keep the comparison fair, the counterfactual images are made in a fixed way:
 
-The key results from the experiments can be found in the `results/` directory. Each subdirectory contains:
+- every test image gets the artifact (`p = 1.0`)
+- the same mask is used for every image in a run (`mask_nr`)
+- the mask is not rotated
 
-- Model checkpoints
-- Training logs
-- Evaluation metrics
-- Bias influence metrics computed using CBI
+`cbi.py` repeats the test for every mask listed in `masks_to_test`. This shows whether the result depends on one particular mask.
+
+**Metrics**
+
+| Metric | Meaning |
+|---|---|
+| `switched` | Number of test images whose predicted class changed after inserting the artifact. Divide by the number of test images to get the switched percentage. |
+| `ben_to_mal` | Switches from benign to malignant. |
+| `mal_to_ben` | Switches from malignant to benign. |
+| `f1`, `recall`, `precision` | Scores on the original test images. |
+| `f1_aug`, `recall_aug`, `precision_aug` | Scores on the counterfactual test images. |
+
+**How to read the results**
+
+- A low `switched` count means the artifact has little effect on the model's predictions.
+- A high `switched` count means the model relies on the artifact.
+- The direction shows what the model has learned. In ISIC 2020, frames are more common in malignant images, so a biased model shows a high `ben_to_mal` count when frames are added.
+- A large drop from `f1` to `f1_aug` means the artifact also hurts accuracy, not only individual predictions.
+- To see whether TDA helped, compare the same architecture trained with `normal` and with TDA. The TDA model should have fewer switched predictions.
+
+**Running CBI**
+
+```bash
+python cbi.py --model_config_path config.yml
+```
+
+`cbi.py` loads every checkpoint matching `saved_models/*/*.ckpt` and reads the architecture, bias type and `p` from the folder name. It tests each model with the bias types in `cbi_plan.augmentations` that match the bias type the model was trained with. For example, a model trained with `hair_and_ruler` is tested with `hair_short`, `hair_medium`, `hair_dense` and `ruler`.
+
+```yaml
+cbi_plan:
+    architectures:
+      names: ["efficientnet_b2", "densenet121", "vit_base_patch16_224"]
+      input_sizes: [224, 256, 224]
+      batch_sizes: [4, 4, 4]
+    dir_to_saved_models: "saved_models/"
+    augmentations: ["frame", "hair_short", "hair_medium", "hair_dense", "ruler"]
+    results_path: "cbi_results.tsv"
+    save_preds_dir: "results/"
+    masks_to_test: [0, 1, 2, 3, 4]
+```
+
+**Output**
+
+- `cbi_results.tsv`: one row per model, bias type and mask, with the columns `model, aug_type, p, switched, mal_to_ben, ben_to_mal, f1, f1_aug, recall, recall_aug, precision, precision_aug, path, mask_nr`. Despite the extension, the file is comma-separated.
+- `results/<model folder>.csv`: predicted probabilities for the original and counterfactual images.
+
+The core of the comparison is `switched_score()` in `cbi.py`:
+
+```python
+from cbi import switched_score
+
+# pred_clean: predicted classes for the original images
+# pred_biased: predicted classes for the same images with the artifact inserted
+switched, ben_to_mal, mal_to_ben = switched_score(pred_clean, pred_biased)
+```
+
+### Analyzing CBI Results
+
+```bash
+python utils/analyze_data.py
+```
+
+This reads `cbi_results.tsv` and writes `aggregated_cbi_results.xlsx`, with sheets that group the results by model, bias type, probability `p` and mask number, plus standard deviations and descriptive statistics.
 
 ## Contributing
 
@@ -298,48 +307,18 @@ Contributions are welcome! Please open an issue or submit a pull request for any
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-
-## **Additional Information:**
-
-- **Helper Functions:**
-
-  - `load_masks(bias_type)`: Loads the masks corresponding to the specified bias type from the `data/masks/` directory.
-  - `transform_mask(mask, scale, angle)`: Applies scaling and rotation to the mask.
-  - `overlay_mask(image, mask, x_offset, y_offset)`: Overlays the mask onto the image at the specified position.
-  - `detect_eyes(image)`: Detects the position of the eyes in a face image for proper placement of glasses.
-
-- **Data Augmentation Library:**
-
-  - The augmentation functions utilize OpenCV and NumPy for image manipulation.
-  - Ensure that you have OpenCV installed (`opencv-python` package).
-
-- **Model Training Details:**
-
-  - Training parameters such as learning rate, batch size, and number of epochs can be adjusted according to your hardware capabilities and desired performance.
-  - Models are saved periodically and the best model (based on validation accuracy) is saved as `model_best.pth`.
-
-- **Logging and Monitoring:**
-
-  - Training and evaluation logs are saved in the `results/` directory.
-  - You can use TensorBoard or other visualization tools to monitor training progress.
-
-- **Error Handling:**
-
-  - The scripts include basic error handling to ensure smooth execution.
-  - If you encounter any issues, please refer to the FAQs or open an issue in the repository.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## FAQs
 
-### Q: What is the purpose of TDA and how does it mitigate bias?
+### Q: What is the purpose of TDA and how does it reduce bias?
 
-**A:** TDA introduces biases intentionally during training to disrupt spurious correlations between biased features and target classes. By exposing the model to biased data in a controlled manner, it learns to focus on relevant features and becomes more robust to biases.
+**A:** TDA inserts the bias artifact into training images at random, in every class. The artifact then appears with benign and malignant images alike, so the model cannot use it to predict the class and has to rely on the lesion itself.
 
 ### Q: How is CBI different from TDA?
 
-**A:** CBI is a method used to evaluate the influence of biases on model predictions. It inserts biases into test images and compares the model's predictions before and after the insertion to assess how much the bias affects the model.
+**A:** TDA is used during training to reduce bias. CBI is used after training to measure bias: it adds the artifact to test images and counts how many predictions change.
 
 ### Q: Can I use my own dataset with TDA and CBI?
 
-**A:** Yes, you can apply TDA and CBI to any image dataset. You will need to provide appropriate masks for the biases you want to study and adjust the augmentation functions accordingly.
+**A:** Yes. Put your images in one folder per class, provide masks for the bias you want to study, and set the paths in `config.yml`. If your bias needs a different way of inserting it, add a transform in `datasets/` and a matching branch in `get_transforms()` in `datasets/transforms_aug.py`.
